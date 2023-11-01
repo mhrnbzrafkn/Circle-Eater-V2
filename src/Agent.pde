@@ -3,7 +3,7 @@ public class Agent {
   private float y = 0; // Player Y
   private int size = 20;
   private int score = 0;
-  private float speed = 5; // Adjust the speed for smoother movement
+  private float speed = 10; // Adjust the speed for smoother movement
   private float x_speed = 0; // Player's horizontal speed
   private float y_speed = 0; // Player's vertical speed
   private float distance = 0;
@@ -17,8 +17,8 @@ public class Agent {
     this.x = width / 2;
     this.y = height / 2;
     
-    nnlayers = new int[] { 4, 7, 2 };
-    learningRate = 0.01;
+    nnlayers = new int[] { 4, 6, 3, 2 };
+    learningRate = 0.1;
     nn = new NeuralNetwork(nnlayers);
   }
   
@@ -44,6 +44,8 @@ public class Agent {
     
     double[] inputs = new double[] { this.x, this.y, foodX, foodY };
     double[] predicted_output = nn.feedForward(inputs);
+    
+    speed = (float)(50 * (abs((float)predicted_output[0] - 0.5) + abs((float)predicted_output[1] - 0.5)));
     
     // Move to right and left
     if (predicted_output[0] >= 0.5) {
