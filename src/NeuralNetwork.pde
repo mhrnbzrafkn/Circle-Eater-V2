@@ -57,6 +57,8 @@ public class NeuralNetwork {
       }
 
       activations = sigmoid(weightedSum);
+      //activations = ReLU(weightedSum);
+      //activations = Tanh(weightedSum);
     }
     return activations;
   }
@@ -65,6 +67,22 @@ public class NeuralNetwork {
     double[] result = new double[values.length];
     for (int i = 0; i < values.length; i++) {
       result[i] = 1 / (1 + Math.exp(-values[i]));
+    }
+    return result;
+  }
+  
+  private double[] ReLU(double[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      result[i] = Math.max(0.0, values[i]);
+    }
+    return result;
+  }
+  
+  private double[] Tanh(double[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      result[i] = Math.tan(values[i]);
     }
     return result;
   }
@@ -88,6 +106,8 @@ public class NeuralNetwork {
       }
 
       activations[i + 1] = sigmoid(weightedSums[i]);
+      //activations[i + 1] = ReLU(weightedSums[i]);
+      //activations[i + 1] = Tanh(weightedSums[i]);
     }
 
     // Step 2: Calculate the output layer error

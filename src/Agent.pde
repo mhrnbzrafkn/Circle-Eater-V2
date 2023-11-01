@@ -18,8 +18,13 @@ public class Agent {
     this.y = height / 2;
     
     nnlayers = new int[] { 4, 7, 2 };
-    learningRate = 0.1;
+    learningRate = 0.01;
     nn = new NeuralNetwork(nnlayers);
+  }
+  
+  public void Respown() {
+    this.x = width / 2;
+    this.y = height / 2;
   }
   
   public void Draw() {

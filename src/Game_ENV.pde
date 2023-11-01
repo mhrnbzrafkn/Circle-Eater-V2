@@ -32,6 +32,7 @@ public class GameENV {
       //DoTheGameOver();
       number_of_game_overs++;
       food.Respown();
+      agent.Respown();
       agent.score = 0;
       timer = millis();
     }
