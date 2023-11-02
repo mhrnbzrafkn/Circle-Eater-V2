@@ -3,7 +3,7 @@ public class Agent {
   private float y = 0; // Player Y
   private int size = 20;
   private int score = 0;
-  private float speed = 10; // Adjust the speed for smoother movement
+  private float speed = 4; // Adjust the speed for smoother movement
   private float x_speed = 0; // Player's horizontal speed
   private float y_speed = 0; // Player's vertical speed
   private float distance = 0;
@@ -17,9 +17,9 @@ public class Agent {
     this.x = width / 2;
     this.y = height / 2;
     
-    nnlayers = new int[] { 4, 6, 3, 2 };
+    nnlayers = new int[] { 4, 5, 2 };
     learningRate = 0.1;
-    nn = new NeuralNetwork(nnlayers);
+    nn = new NeuralNetwork(nnlayers, Activation.sigmoid);
   }
   
   public void Respown() {
@@ -42,30 +42,25 @@ public class Agent {
     //Calculate Distance Befor Action
     previous_distance = CalculateDistanceToFood(foodX, foodY);
     
-    double[] inputs = new double[] { this.x, this.y, foodX, foodY };
+    double[] inputs = new double[] { this.x / width, this.y / height, foodX / width, foodY / height };
     double[] predicted_output = nn.feedForward(inputs);
     
-    speed = (float)(50 * (abs((float)predicted_output[0] - 0.5) + abs((float)predicted_output[1] - 0.5)));
+    float directionRatio = (abs((float)predicted_output[0] - 0.5) + abs((float)predicted_output[1] - 0.5));
+    speed = (float)(50 * directionRatio);
     
     // Move to right and left
     if (predicted_output[0] >= 0.5) {
       x_speed = speed;
     } else if (predicted_output[0] < 0.5) {
       x_speed = -speed;
-    } 
-    //else if (predicted_output[0] > 0.4 && predicted_output[0] < 0.6) {
-    //  x_speed = 0;
-    //}
+    }
     
     // Move to up and down
     if (predicted_output[1] >= 0.5) {
       y_speed = -speed;
     } else if (predicted_output[1] < 0.5) {
       y_speed = speed;
-    } 
-    //else if (predicted_output[1] > 0.4 && predicted_output[1] < 0.6) {
-    //  y_speed = 0;
-    //}
+    }
     
     //Calculate Distance After Action
     distance = CalculateDistanceToFood(foodX, foodY);

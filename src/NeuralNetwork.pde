@@ -7,11 +7,13 @@ public class NeuralNetwork {
   private double[][][] weights;
   private double[][] biases;
   private Random random;
+  private Activation activation;
 
-  public NeuralNetwork(int[] layerSizes) {
+  public NeuralNetwork(int[] layerSizes, Activation activation) {
     this.numLayers = layerSizes.length;
     this.layerSizes = layerSizes;
     this.random = new Random();
+    this.activation = activation;
 
     initializeWeights();
     initializeBiases();
@@ -56,35 +58,20 @@ public class NeuralNetwork {
         weightedSum[j] += biases[i][j];
       }
 
-      activations = sigmoid(weightedSum);
+      if (activation == Activation.sigmoid) {
+        activations = sigmoid(weightedSum);
+      }
+      if (activation == Activation.ReLU) {
+        activations = ReLU(weightedSum);
+      }
+      if (activation == Activation.Tanh) {
+        activations = Tanh(weightedSum);
+      }
+      //activations = sigmoid(weightedSum);
       //activations = ReLU(weightedSum);
       //activations = Tanh(weightedSum);
     }
     return activations;
-  }
-
-  private double[] sigmoid(double[] values) {
-    double[] result = new double[values.length];
-    for (int i = 0; i < values.length; i++) {
-      result[i] = 1 / (1 + Math.exp(-values[i]));
-    }
-    return result;
-  }
-  
-  private double[] ReLU(double[] values) {
-    double[] result = new double[values.length];
-    for (int i = 0; i < values.length; i++) {
-      result[i] = Math.max(0.0, values[i]);
-    }
-    return result;
-  }
-  
-  private double[] Tanh(double[] values) {
-    double[] result = new double[values.length];
-    for (int i = 0; i < values.length; i++) {
-      result[i] = Math.tan(values[i]);
-    }
-    return result;
   }
 
   public void backpropagate(double[] input, double[] targetOutput, double learningRate) {
@@ -105,7 +92,16 @@ public class NeuralNetwork {
         weightedSums[i][j] += biases[i][j];
       }
 
-      activations[i + 1] = sigmoid(weightedSums[i]);
+      if (activation == Activation.sigmoid) {
+        activations[i + 1] = sigmoid(weightedSums[i]);
+      }
+      if (activation == Activation.ReLU) {
+        activations[i + 1] = ReLU(weightedSums[i]);
+      }
+      if (activation == Activation.Tanh) {
+        activations[i + 1] = Tanh(weightedSums[i]);
+      }
+      //activations[i + 1] = sigmoid(weightedSums[i]);
       //activations[i + 1] = ReLU(weightedSums[i]);
       //activations[i + 1] = Tanh(weightedSums[i]);
     }
@@ -166,6 +162,29 @@ public class NeuralNetwork {
     }
   }
 
+  private double[] sigmoid(double[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      result[i] = 1 / (1 + Math.exp(-values[i]));
+    }
+    return result;
+  }
+
+  private double[] ReLU(double[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      result[i] = Math.max(0.0, values[i]);
+    }
+    return result;
+  }
+
+  private double[] Tanh(double[] values) {
+    double[] result = new double[values.length];
+    for (int i = 0; i < values.length; i++) {
+      result[i] = Math.tan(values[i]);
+    }
+    return result;
+  }
 
   public void mutate(double mutationRate) {
     for (int i = 0; i < numLayers - 1; i++) {
@@ -198,7 +217,7 @@ public class NeuralNetwork {
   }
 
   public NeuralNetwork generateCopy() {
-    NeuralNetwork copy = new NeuralNetwork(layerSizes);
+    NeuralNetwork copy = new NeuralNetwork(layerSizes, activation);
 
     // Copy weights
     for (int i = 0; i < numLayers - 1; i++) {
@@ -233,4 +252,8 @@ public class NeuralNetwork {
       System.out.println();
     }
   }
+}
+
+enum Activation {
+  sigmoid, ReLU, Tanh
 }

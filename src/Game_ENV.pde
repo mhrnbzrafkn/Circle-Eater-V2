@@ -53,7 +53,7 @@ public class GameENV {
     text("Game Overs: " + number_of_game_overs, 20, 20);
     text("Max score: " + max_score, 20, 40);
     text("Score: " + agent.score, 20, 60);
-    text("Time Left: " + (max_timer - timeSpent) + "ms / " + max_timer +"ms", 20, 80);
+    text("Timer: " + (max_timer - timeSpent) + "ms / " + max_timer +"ms", 20, 80);
     
     //END OF DRAW
   }
