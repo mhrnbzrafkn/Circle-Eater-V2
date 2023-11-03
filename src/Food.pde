@@ -1,7 +1,7 @@
 public class Food {
   private float x = 0; // Food X
   private float y = 0; // Food Y
-  private int size = 30;
+  private int size = 20;
   
   public Food() {
     this.x = random(size / 2, width - size / 2);

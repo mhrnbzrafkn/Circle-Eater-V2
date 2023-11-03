@@ -3,9 +3,9 @@ public class Agent {
   private float y = 0; // Player Y
   private int size = 20;
   private int score = 0;
-  private float speed = 4; // Adjust the speed for smoother movement
-  private float x_speed = 0; // Player's horizontal speed
-  private float y_speed = 0; // Player's vertical speed
+  private float speed = 5; // Adjust the speed for smoother movement
+  //private float x_speed = 0; // Player's horizontal speed
+  //private float y_speed = 0; // Player's vertical speed
   private float distance = 0;
   private float previous_distance = 0;
   
@@ -13,11 +13,13 @@ public class Agent {
   private NeuralNetwork nn;
   private float learningRate;
   
+  private int trainNumbers = 0;
+  
   public Agent() {
     this.x = width / 2;
     this.y = height / 2;
     
-    nnlayers = new int[] { 4, 5, 2 };
+    nnlayers = new int[] { 4, 5, 8, 5, 4 };
     learningRate = 0.1;
     nn = new NeuralNetwork(nnlayers, Activation.sigmoid);
   }
@@ -28,9 +30,6 @@ public class Agent {
   }
   
   public void Draw() {
-    x += x_speed;
-    y += y_speed;
-    
     x = constrain(x, size / 2, width - size / 2);
     y = constrain(y, size / 2, height - size / 2);
     
@@ -44,39 +43,44 @@ public class Agent {
     
     double[] inputs = new double[] { this.x / width, this.y / height, foodX / width, foodY / height };
     double[] predicted_output = nn.feedForward(inputs);
-    
-    float directionRatio = (abs((float)predicted_output[0] - 0.5) + abs((float)predicted_output[1] - 0.5));
-    speed = (float)(50 * directionRatio);
+    //println(predicted_output[0]+ " - " + predicted_output[1]+ " - " + predicted_output[2]+ " - " + predicted_output[3]);
     
     // Move to right and left
-    if (predicted_output[0] >= 0.5) {
-      x_speed = speed;
-    } else if (predicted_output[0] < 0.5) {
-      x_speed = -speed;
+    if (predicted_output[0] > predicted_output[1]) {
+      StepRight(this.speed);
+    } else if (predicted_output[0] < predicted_output[1]) {
+      StepLeft(this.speed);
     }
     
     // Move to up and down
-    if (predicted_output[1] >= 0.5) {
-      y_speed = -speed;
-    } else if (predicted_output[1] < 0.5) {
-      y_speed = speed;
+    if (predicted_output[2] > predicted_output[3]) {
+      StepUp(this.speed);
+    } else if (predicted_output[2] < predicted_output[3]) {
+      StepDown(this.speed);
     }
     
     //Calculate Distance After Action
     distance = CalculateDistanceToFood(foodX, foodY);
-    double[] target_output = new double[] { 0.5, 0.5 };
     
     if (distance >= previous_distance) {
-      if (x > foodX) {
+      println("Train Step: " + trainNumbers++);
+      
+      double[] target_output = new double[] { 0.0, 0.0, 0.0, 0.0 };
+      
+      if (this.x > foodX) {
         target_output[0] = 0;
+        target_output[1] = 1;
       } else if (x < foodX) {
         target_output[0] = 1;
+        target_output[1] = 0;
       }
       
       if (y > foodY) {
-        target_output[1] = 1;
+        target_output[2] = 1;
+        target_output[3] = 0;
       } else if (y < foodY) {
-        target_output[1] = 0;
+        target_output[2] = 0;
+        target_output[3] = 1;
       }
       
       nn.backpropagate(inputs, target_output, learningRate);
@@ -98,27 +102,21 @@ public class Agent {
     }
   }
   
-  public void StepToLeft() {
-    this.x_speed = -speed;
+  public void StepLeft(double s) {
+    this.x -= s;
   }
   
-  public void StepToRight() {
-    this.x_speed = speed;
+  public void StepRight(double s) {
+    this.x += s;
   }
   
-  public void StepToUp() {
-    this.y_speed = -speed;
+  public void StepUp(double s) {
+    this.y -= s;
   }
   
-  public void StepToDown() {
-    this.y_speed = speed;
+  public void StepDown(double s) {
+    this.y += s;
   }
   
-  public void HorizontalRelease() {
-    this.x_speed = 0;
-  }
-  
-  public void VerticalRelease() {
-    this.y_speed = 0;
-  }
+  //End Of Agent Class
 }

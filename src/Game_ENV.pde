@@ -3,7 +3,7 @@ public class GameENV {
   private Food food;
   private int max_score = 0;
   private int timer = 0;
-  private float max_timer = 5000;
+  private float max_timer = 10000;
   private int number_of_game_overs = 0;
   
   public GameENV() {
