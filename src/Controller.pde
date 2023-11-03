@@ -1,8 +1,8 @@
-GameENV env; //<>//
+GameENV env;
 
 void setup() {
-  size(400, 400);
-  env = new GameENV();
+  size(800, 800);
+  env = new GameENV(); //<>//
 }
 
 void draw() {

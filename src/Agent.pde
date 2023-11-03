@@ -13,15 +13,27 @@ public class Agent {
   private NeuralNetwork nn;
   private float learningRate;
   
-  private int trainNumbers = 0;
+  private int timer = 0;
+  private float max_timer = 5000;
+  private int timeSpent = 0;
+  
+  private Food food;
+  
+  private boolean isAgentGameOver = false;
   
   public Agent() {
+    isAgentGameOver = false;
+    
     this.x = width / 2;
     this.y = height / 2;
     
-    nnlayers = new int[] { 4, 5, 8, 5, 4 };
+    nnlayers = new int[] { 4, 5, 4 };
     learningRate = 0.1;
     nn = new NeuralNetwork(nnlayers, Activation.sigmoid);
+    
+    this.food = new Food();
+    
+    timer = millis();
   }
   
   public void Respown() {
@@ -33,17 +45,37 @@ public class Agent {
     x = constrain(x, size / 2, width - size / 2);
     y = constrain(y, size / 2, height - size / 2);
     
+    //Draw Agent-Food Line
+    stroke(255);
+    line(this.x, this.y, food.x, food.y);
+    
+    //Draw Agent
     fill(0, 0, 255);
     ellipse(this.x, this.y, this.size, this.size);
+    
+    //Draw Food
+    food.Draw();
+    
+    //Start Timer
+    if (timeSpent < max_timer) {
+      timeSpent = millis() - timer;
+    }
+    
+    // Reset game If Max Time Runs Out
+    if (timeSpent > max_timer) {
+      //food.Respown();
+      //Respown();
+      //this.score = 0;
+      isAgentGameOver = true;
+    }
   }
   
-  public void Action(float foodX, float foodY) {
+  public void Action() {
     //Calculate Distance Befor Action
-    previous_distance = CalculateDistanceToFood(foodX, foodY);
+    previous_distance = CalculateDistanceToFood(food.x, food.y);
     
-    double[] inputs = new double[] { this.x / width, this.y / height, foodX / width, foodY / height };
+    double[] inputs = new double[] { this.x / width, this.y / height, food.x / width, food.y / height };
     double[] predicted_output = nn.feedForward(inputs);
-    //println(predicted_output[0]+ " - " + predicted_output[1]+ " - " + predicted_output[2]+ " - " + predicted_output[3]);
     
     // Move to right and left
     if (predicted_output[0] > predicted_output[1]) {
@@ -60,30 +92,38 @@ public class Agent {
     }
     
     //Calculate Distance After Action
-    distance = CalculateDistanceToFood(foodX, foodY);
+    distance = CalculateDistanceToFood(food.x, food.y);
     
     if (distance >= previous_distance) {
-      println("Train Step: " + trainNumbers++);
+      //println("Train Step: " + trainNumbers++);
       
       double[] target_output = new double[] { 0.0, 0.0, 0.0, 0.0 };
       
-      if (this.x > foodX) {
+      if (this.x > food.x) {
         target_output[0] = 0;
         target_output[1] = 1;
-      } else if (x < foodX) {
+      } else if (x < food.x) {
         target_output[0] = 1;
         target_output[1] = 0;
       }
       
-      if (y > foodY) {
+      if (y > food.y) {
         target_output[2] = 1;
         target_output[3] = 0;
-      } else if (y < foodY) {
+      } else if (y < food.y) {
         target_output[2] = 0;
         target_output[3] = 1;
       }
       
       nn.backpropagate(inputs, target_output, learningRate);
+    }
+    
+    // Check for collision with food
+    if (CheckCollision(food.x, food.y, food.size)) {
+      food.Respown();
+      this.score++;
+      timer = millis();
+      timeSpent = 0;
     }
   }
   

@@ -1,60 +1,135 @@
 public class GameENV {
-  private Agent agent;
-  private Food food;
-  private int max_score = 0;
+  private Agent[] agents;
+  private int NumberOfAgents = 100;
+  private int NumberOfSelectedAgents = 10;
+  private int NumberOfGenerations = 1;
+  private int MaxReachedScore = 0;
+  
   private int timer = 0;
-  private float max_timer = 10000;
-  private int number_of_game_overs = 0;
+  private float maxTimer = 10000;
+  private int timeSpent = 0;
   
   public GameENV() {
-    this.food = new Food();
-    this.agent = new Agent();
+    agents = new Agent[NumberOfAgents]; //<>//
+    
+    for (int i = 0; i < agents.length; i++) {
+      agents[i] = new Agent();
+    }
+    
+    timer = millis();
   }
   
   public void Draw() {
     //Initial Game
-    agent.Draw();
-    food.Draw();
+    for (int i = 0; i < agents.length; i++) {
+      if (!agents[i].isAgentGameOver) {
+        agents[i].Draw();
+      }
+    }
     
     //Action
-    agent.Action(food.x, food.y);
-    
-    //Start Timer
-    var timeSpent = millis() - timer;
-    
-    //Check Max Score
-    if (agent.score > max_score) {
-      max_score = agent.score;
+    for (int i = 0; i < agents.length; i++) {
+      if (!agents[i].isAgentGameOver) {
+        agents[i].Action();
+      }
     }
     
-    // Reset game If Max Time Runs Out
-    if (timeSpent > max_timer) {
-      //DoTheGameOver();
-      number_of_game_overs++;
-      food.Respown();
-      agent.Respown();
-      agent.score = 0;
+    //Regenerate Population //<>//
+    timeSpent = millis() - timer;
+    
+    if (CountAliveAgents() <= 0 || timeSpent > maxTimer) {
+      NumberOfGenerations++;
+      
+      Agent[] bestAgents = FindBestAgents(NumberOfSelectedAgents);
+      agents = new Agent[NumberOfAgents];
+      
+      for (int i = 0; i < NumberOfSelectedAgents / 2; i++) {
+        Agent childAgent = new Agent();
+        bestAgents[i].nn.combine(bestAgents[i + 1].nn);
+        childAgent.nn = bestAgents[i].nn;
+        agents[i] = childAgent;
+      }
+      
+      for (int i = NumberOfSelectedAgents / 2; i < NumberOfAgents; i++) {
+        agents[i] = new Agent();
+      }
+      
       timer = millis();
     }
     
-    // Check for collision with food
-    if (agent.CheckCollision(food.x, food.y, food.size)) {
-      food.Respown();
-      agent.score++;
-      timer = millis();
-    }
-    
-    // Update player position based on speed
-    agent.Draw();
+    int bestAgentIndex = FindBestAgentIndex();
     
     // Display Game Information
+    fill(50, 50, 50, 225);
+    rect(10, 5, 265, 100);
     fill(255);
     textSize(15);
-    text("Game Overs: " + number_of_game_overs, 20, 20);
-    text("Max score: " + max_score, 20, 40);
-    text("Score: " + agent.score, 20, 60);
-    text("Timer: " + (max_timer - timeSpent) + "ms / " + max_timer +"ms", 20, 80);
+    text("Generation: " + NumberOfGenerations, 20, 20);
+    text("Alive Agents: " + CountAliveAgents(), 20, 40);
+    text("Best Agent Score: " + agents[bestAgentIndex].score, 20, 60);
+    if (agents[bestAgentIndex].score > MaxReachedScore) {
+      MaxReachedScore = agents[bestAgentIndex].score;
+    }
+    text("Max Reached Score: " + MaxReachedScore, 20, 80);
+    text("Timer Spent: " + (maxTimer - timeSpent) + "ms / " + maxTimer + "ms", 20, 100);
     
     //END OF DRAW
+  }
+  
+  public Agent[] RemoveElementAtIndex(Agent[] agents, int index) {
+    if (index < 0 || index >= agents.length) { //<>//
+      return agents;
+    }
+    
+    Agent[] newAgents = new Agent[agents.length - 1];
+    for (int i = 0, j = 0; i < agents.length; i++) {
+      if (i != index) {
+        newAgents[j] = agents[i];
+        j++;
+      }
+    }
+    
+    return newAgents;
+  }
+  
+  public int CountAliveAgents() {
+    int counter = 0;
+    for (int i = 0; i < agents.length; i++) {
+      if (!agents[i].isAgentGameOver) {
+        counter++;
+      }
+    }
+    
+    return counter;
+  }
+  
+  public Agent[] FindBestAgents(int count) {
+    Agent[] bestAgents = new Agent[count];
+    for (int i = 0; i < bestAgents.length; i++) {
+      bestAgents[i] = agents[0];
+      for (int j = 0; j < agents.length; j++) {
+        //Select Best Agent
+        if (agents[i].score > bestAgents[i].score && agents[i].timeSpent < bestAgents[i].timeSpent) {
+          bestAgents[i] = agents[i];
+          agents = RemoveElementAtIndex(agents, i);
+        }
+      }
+    }
+    
+    return bestAgents;
+  }
+  
+  public int FindBestAgentIndex() {
+    int bestAgentIndex = 0; //<>//
+    Agent bestAgent = agents[0];
+    
+    for (int i = 0; i < agents.length; i++) {
+      if (agents[i].score > bestAgent.score) {
+        bestAgent = agents[i];
+        bestAgentIndex = i;
+      }
+    }
+    
+    return bestAgentIndex;
   }
 }
